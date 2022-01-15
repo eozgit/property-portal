@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+option go_package = "github.com/eozgit/property-portal/propertyportal";
+
+package propertyportal;
+
+service PropertyPortal {
+    rpc FindProperties(Filters) returns (Properties) {}
+
+    rpc GetPropertyDetails(Property) returns (PropertyDetails) {}
+
+    rpc GetPropertyImages(Property) returns (stream Image) {}
+}
+
+enum PropertyType {
+    Detached = 0;
+    SemiDetached = 1;
+    Terraced = 2;
+    Flat = 3;
+}
+
+message Features {
+    bool Garden = 1;
+    bool Parking = 2;
+    bool NewHome = 3;
+}
+
+message Filters {
+    string location = 1;
+    double minPrice = 2;
+    double maxPrice = 3;
+    uint32 minBeds = 4;
+    uint32 maxBeds = 5;
+    PropertyType propertyType = 6;
+    Features mustHaves = 7;
+}
+
+message Property {
+    uint64 id = 1;
+    string title = 2;    
+}
+
+message Properties {
+    repeated Property properties = 1;
+}
+
+message EnergyEfficiencyRating {
+    uint32 current = 1;
+    uint32 potential = 2;
+}
+
+message PropertyDetails {
+    Property property = 1;
+    string description = 2;
+    string location = 3;
+    double price = 4;
+    uint32 beds = 5;
+    uint32 bathrooms = 6;
+    PropertyType propertyType = 7;
+    Features features = 8;
+    EnergyEfficiencyRating energyEfficiencyRating = 9;
+}
+
+message Image {
+    oneof image {
+        string url = 1;
+        bytes data = 2;
+    }
+}
