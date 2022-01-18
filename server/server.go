@@ -15,6 +15,7 @@ type propertyPortalServer struct {
 }
 
 func (s *propertyPortalServer) FindProperties(ctx context.Context, filters *pb.Filters) (*pb.Properties, error) {
+	log.Printf("FindProperties")
 	props := pb.Properties{}
 	props.Properties = append(props.Properties, &pb.Property{Id: 1, Title: "3 bedroom house"})
 	return &props, nil
@@ -38,5 +39,6 @@ func main() {
 	}
 	grpcServer := grpc.NewServer()
 	pb.RegisterPropertyPortalServer(grpcServer, &propertyPortalServer{})
+	log.Printf("grpcServer starting")
 	grpcServer.Serve(lis)
 }

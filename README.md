@@ -4,7 +4,7 @@
 
 - Search for properties
 - Get property details
-- Get Property images
+- Get property images
 
 #### Generate client & server stubs
 ```sh
@@ -25,4 +25,19 @@ go run server/server.go
 #### Run client
 ```sh
 go run client/client.go
+```
+
+#### Build image
+```sh
+docker build --tag eozgit/property-portal .
+```
+
+### Run container
+```sh
+docker run --tty --interactive --rm --publish 10000:10000 --name property-portal eozgit/property-portal
+```
+
+### Start interactive shell
+````sh
+docker exec --interactive --tty property-portal bash
 ```
