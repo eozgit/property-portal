@@ -11,4 +11,4 @@ RUN apt-get --yes install sqlite3
 RUN go get /app/server
 RUN go get /app/client
 
-CMD [ "go", "run", "server/server.go" ]
+CMD [ "go", "run", "/app/server/" ]

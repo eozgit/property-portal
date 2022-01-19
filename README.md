@@ -32,12 +32,20 @@ go run client/client.go
 docker build --tag eozgit/property-portal .
 ```
 
-### Run container
+#### Run container
 ```sh
-docker run --tty --interactive --rm --publish 10000:10000 --name property-portal eozgit/property-portal
+docker run --tty --interactive --rm \
+    --publish 10000:10000 \
+    --name property-portal \
+    eozgit/property-portal
 ```
 
-### Start interactive shell
-````sh
+#### Start interactive shell
+```sh
 docker exec --interactive --tty property-portal bash
+```
+
+#### Select locations
+```sh
+sqlite3 -header -column -echo /tmp/property.db 'select * from locations;'
 ```
