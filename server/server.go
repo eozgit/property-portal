@@ -2,18 +2,14 @@ package main
 
 import (
 	"context"
-	"encoding/csv"
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
-	"os"
-	"strconv"
-	"strings"
+	"time"
 
 	pb "github.com/eozgit/property-portal/propertyportal"
 	"google.golang.org/grpc"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
 type propertyPortalServer struct {
@@ -39,69 +35,16 @@ func (s *propertyPortalServer) ListFeatures(rect *pb.Property, stream pb.Propert
 }
 
 func main() {
-	initDb()
+	rand.Seed(time.Now().UnixNano())
+
+	dal := DataAccessLayer{}
+	dal.initDb()
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", 10000))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	grpcServer := grpc.NewServer()
 	pb.RegisterPropertyPortalServer(grpcServer, &propertyPortalServer{})
-	log.Printf("grpcServer starting")
+	log.Printf("grpcServer started")
 	grpcServer.Serve(lis)
-}
-
-type Location struct {
-	gorm.Model
-	Rank       uint32
-	District   string
-	Population uint64
-	Type       string
-	County     string
-	Region     string
-}
-
-func initDb() {
-	db_file := "/tmp/property.db"
-	os.Remove(db_file)
-	db, err := gorm.Open(sqlite.Open(db_file), &gorm.Config{})
-	if err != nil {
-		panic("Database connection failure")
-	}
-
-	db.AutoMigrate(&Location{})
-
-	seedLocations(db)
-}
-
-func seedLocations(db *gorm.DB) {
-	r := csv.NewReader(strings.NewReader(data))
-
-	records, err := r.ReadAll()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var locations []Location
-
-	for _, record := range records {
-		rank, errRank := strconv.ParseUint(strings.ReplaceAll(record[0], ",", ""), 10, 32)
-		if errRank != nil {
-			log.Fatalf("failed to convert rank '%s'", record[0])
-		}
-		population, errPopulation := strconv.ParseUint(strings.ReplaceAll(record[2], ",", ""), 10, 64)
-		if errPopulation != nil {
-			log.Fatalf("failed to convert population '%s'", record[2])
-		}
-		location := Location{
-			Rank:       uint32(rank),
-			District:   record[1],
-			Population: population,
-			Type:       record[3],
-			County:     record[4],
-			Region:     record[5],
-		}
-		locations = append(locations, location)
-	}
-
-	db.Create(&locations)
 }

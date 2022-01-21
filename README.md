@@ -19,12 +19,12 @@ protoc \
 
 #### Start server
 ```sh
-go run server/server.go
+go run ./server/
 ```
 
 #### Run client
 ```sh
-go run client/client.go
+go run ./client/
 ```
 
 #### Build image
@@ -45,7 +45,7 @@ docker run --tty --interactive --rm \
 docker exec --interactive --tty property-portal bash
 ```
 
-#### Select locations
+#### Select properties
 ```sh
-sqlite3 -header -column -echo /tmp/property.db 'select * from locations;'
+sqlite3 -header -column -echo /tmp/property.db 'select * from properties;'
 ```
