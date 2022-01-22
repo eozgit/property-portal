@@ -12,15 +12,16 @@ import (
 	"google.golang.org/grpc"
 )
 
+var dal DataAccessLayer
+
 type propertyPortalServer struct {
 	pb.UnimplementedPropertyPortalServer
 }
 
 func (s *propertyPortalServer) FindProperties(ctx context.Context, filters *pb.Filters) (*pb.Properties, error) {
 	log.Printf("FindProperties")
-	props := pb.Properties{}
-	props.Properties = append(props.Properties, &pb.Property{Id: 1, Title: "3 bedroom house"})
-	return &props, nil
+	props := dal.findProperties(filters)
+	return props, nil
 }
 
 func (s *propertyPortalServer) GetPropertyDetails(ctx context.Context, filters *pb.Property) (*pb.PropertyDetails, error) {
@@ -37,7 +38,7 @@ func (s *propertyPortalServer) ListFeatures(rect *pb.Property, stream pb.Propert
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	dal := DataAccessLayer{}
+	dal = DataAccessLayer{}
 	dal.initDb()
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", 10000))
 	if err != nil {

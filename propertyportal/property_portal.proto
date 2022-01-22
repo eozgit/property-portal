@@ -13,16 +13,17 @@ service PropertyPortal {
 }
 
 enum PropertyType {
-    Detached = 0;
-    SemiDetached = 1;
-    Terraced = 2;
-    Flat = 3;
+    Any = 0;
+    Detached = 1;
+    SemiDetached = 2;
+    Terraced = 3;
+    Flat = 4;
 }
 
 message Features {
-    bool Garden = 1;
-    bool Parking = 2;
-    bool NewHome = 3;
+    int32 Garden = 1;
+    int32 Parking = 2;
+    int32 NewHome = 3;
 }
 
 message Filters {

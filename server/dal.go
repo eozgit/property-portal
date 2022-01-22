@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	pb "github.com/eozgit/property-portal/propertyportal"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -65,7 +66,7 @@ func (dal *DataAccessLayer) seedProperties() {
 				}
 			}
 			price := (rand.Intn(20)*5 + (beds+1)*100) * 1000
-			propertyType := rand.Intn(4)
+			propertyType := rand.Intn(4) + 1
 			currentRating := rand.Intn(100)
 			property := Property{
 				Title:           getTitle(beds, propertyType),
@@ -107,4 +108,50 @@ func getTitle(beds int, propertyType int) string {
 		}
 		return fmt.Sprintf("Studio %s", titleType)
 	}
+}
+
+func (dal *DataAccessLayer) findProperties(filters *pb.Filters) *pb.Properties {
+	var results []Property
+	query := dal.db
+	if len(filters.Location) > 3 {
+		query = query.Where("location like ?", fmt.Sprintf("%%%s%%", filters.Location))
+	}
+	if filters.MinPrice > 0 {
+		query = query.Where("price >= ?", filters.MinPrice)
+	}
+	if filters.MaxPrice > 0 {
+		query = query.Where("price <= ?", filters.MinPrice)
+	}
+	if filters.MinBeds > 0 {
+		query = query.Where("beds >= ?", filters.MinBeds)
+	}
+	if filters.MaxBeds > 0 {
+		query = query.Where("beds <= ?", filters.MaxBeds)
+	}
+	if filters.PropertyType > 0 {
+		query = query.Where("propertyType = ?", filters.PropertyType)
+	}
+	if filters.MustHaves != nil {
+		if filters.MustHaves.Garden > -1 {
+			query = query.Where("garden = ?", filters.MustHaves.Garden > 0)
+		}
+		if filters.MustHaves.Parking > -1 {
+			query = query.Where("parking = ?", filters.MustHaves.Parking > 0)
+		}
+		if filters.MustHaves.NewHome > -1 {
+			query = query.Where("newHome = ?", filters.MustHaves.NewHome > 0)
+		}
+	}
+	query.Find(&results)
+
+	properties := []*pb.Property{}
+	for _, record := range results {
+		property := pb.Property{
+			Id:    uint64(record.ID),
+			Title: record.Title,
+		}
+		properties = append(properties, &property)
+	}
+	response := pb.Properties{Properties: properties}
+	return &response
 }
