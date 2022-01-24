@@ -70,7 +70,7 @@ func (dal *DataAccessLayer) seedProperties() {
 			currentRating := rand.Intn(100)
 			property := Property{
 				Title:           getTitle(beds, propertyType),
-				Description:     getTitle(beds, propertyType),
+				Description:     getDescription(),
 				Location:        fmt.Sprintf("%s, %s, %s", district, county, region),
 				Price:           float64(price),
 				Beds:            uint32(beds),
@@ -90,23 +90,26 @@ func (dal *DataAccessLayer) seedProperties() {
 }
 
 var propertyTypeMap = map[uint32]string{
-	0: "detached house",
-	1: "semi-detached house",
-	2: "terraced house",
-	3: "flat",
+	0: "dwelling",
+	1: "detached house",
+	2: "semi-detached house",
+	3: "terraced house",
+	4: "flat",
+}
+
+var studioPropertyTypeMap = map[uint32]string{
+	0: "dwelling",
+	1: "house",
+	2: "house",
+	3: "house",
+	4: "flat",
 }
 
 func getTitle(beds int, propertyType int) string {
 	if beds > 0 {
 		return fmt.Sprintf("%d bedroom %s", beds, propertyTypeMap[uint32(propertyType)])
 	} else {
-		var titleType string
-		if propertyType == 3 {
-			titleType = "flat"
-		} else {
-			titleType = "house"
-		}
-		return fmt.Sprintf("Studio %s", titleType)
+		return fmt.Sprintf("Studio %s", studioPropertyTypeMap[uint32(propertyType)])
 	}
 }
 
@@ -114,7 +117,7 @@ func (dal *DataAccessLayer) findProperties(filters *pb.Filters) *pb.Properties {
 	var results []Property
 	query := dal.db
 	if len(filters.Location) > 3 {
-		query = query.Where("location like ?", fmt.Sprintf("%%%s%%", filters.Location))
+		query = query.Where("lower(location) like ?", fmt.Sprintf("%%%s%%", strings.ToLower(filters.Location)))
 	}
 	if filters.MinPrice > 0 {
 		query = query.Where("price >= ?", filters.MinPrice)
@@ -132,14 +135,14 @@ func (dal *DataAccessLayer) findProperties(filters *pb.Filters) *pb.Properties {
 		query = query.Where("propertyType = ?", filters.PropertyType)
 	}
 	if filters.MustHaves != nil {
-		if filters.MustHaves.Garden > -1 {
-			query = query.Where("garden = ?", filters.MustHaves.Garden > 0)
+		if filters.MustHaves.Garden != 0 {
+			query = query.Where("garden = ?", filters.MustHaves.Garden == 1)
 		}
-		if filters.MustHaves.Parking > -1 {
-			query = query.Where("parking = ?", filters.MustHaves.Parking > 0)
+		if filters.MustHaves.Parking != 0 {
+			query = query.Where("parking = ?", filters.MustHaves.Parking == 1)
 		}
-		if filters.MustHaves.NewHome > -1 {
-			query = query.Where("newHome = ?", filters.MustHaves.NewHome > 0)
+		if filters.MustHaves.NewHome != 0 {
+			query = query.Where("newHome = ?", filters.MustHaves.NewHome == 1)
 		}
 	}
 	query.Find(&results)
@@ -154,4 +157,26 @@ func (dal *DataAccessLayer) findProperties(filters *pb.Filters) *pb.Properties {
 	}
 	response := pb.Properties{Properties: properties}
 	return &response
+}
+
+var features = []string{
+	"Very well presented throughout",
+	"Modern kitchen",
+	"Sought after location",
+	"Rarely Available Cul-De-Sac Location",
+	"Utility Room",
+	"Driveway Parking For Multiple Vehicles",
+	"Short Distance to Bus Stops",
+	"Close To Local Amenities",
+	"Conservatory",
+	"No upward chain",
+	"Gas central heating",
+}
+
+func getDescription() string {
+	sample := append([]string(nil), features...)
+	rand.Shuffle(len(features), func(i, j int) { sample[i], sample[j] = sample[j], sample[i] })
+	k := rand.Intn(3) + 1
+	sample = sample[:k]
+	return strings.Join(sample[:], ", ")
 }

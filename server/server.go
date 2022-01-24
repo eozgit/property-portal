@@ -19,8 +19,8 @@ type propertyPortalServer struct {
 }
 
 func (s *propertyPortalServer) FindProperties(ctx context.Context, filters *pb.Filters) (*pb.Properties, error) {
-	log.Printf("FindProperties")
 	props := dal.findProperties(filters)
+	log.Printf("FindProperties count: %d", len(props.Properties))
 	return props, nil
 }
 
@@ -28,7 +28,7 @@ func (s *propertyPortalServer) GetPropertyDetails(ctx context.Context, filters *
 	return &pb.PropertyDetails{}, nil
 }
 
-func (s *propertyPortalServer) ListFeatures(rect *pb.Property, stream pb.PropertyPortal_GetPropertyImagesServer) error {
+func (s *propertyPortalServer) GetPropertyImages(rect *pb.Property, stream pb.PropertyPortal_GetPropertyImagesServer) error {
 	if err := stream.Send(&pb.Image{}); err != nil {
 		return err
 	}

@@ -22,7 +22,17 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	properties, err := client.FindProperties(ctx, &pb.Filters{})
+	properties, err := client.FindProperties(ctx, &pb.Filters{
+		Location:     "Birmingham",
+		MinPrice:     200000,
+		MaxPrice:     350000,
+		MinBeds:      1,
+		MaxBeds:      3,
+		PropertyType: pb.PropertyType_Any,
+		MustHaves: &pb.Features{
+			Garden: 1,
+		},
+	})
 	if err != nil {
 		log.Fatalf("%v.FindProperties(_) = _, %v: ", client, err)
 	}
