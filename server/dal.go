@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -34,6 +35,13 @@ func (dal *DataAccessLayer) initDb() {
 }
 
 func (dal *DataAccessLayer) seedProperties() {
+	absPath, _ := filepath.Abs("./server/locations.csv")
+	f, err := os.Open(absPath)
+	if err != nil {
+		log.Fatal("Unable to read locations file", err)
+	}
+	defer f.Close()
+
 	r := csv.NewReader(strings.NewReader(data))
 
 	records, err := r.ReadAll()

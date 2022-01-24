@@ -47,10 +47,12 @@ docker exec --interactive --tty property-portal bash
 
 #### Select properties
 ```sh
-sqlite3 -header -column -echo /tmp/property.db 'select * from properties;'
+sqlite3 -header -column -echo \
+    /tmp/property.db < ./server/sql/properties.sql
 ```
 
 #### Sample properties
 ```sh
-sqlite3 -header -column -echo /tmp/property.db 'select id, title, substr(description, 1, 9) description, substr(location, 1, 9) location, price, beds, bathrooms, property_type, garden, parking, new_home, current_rating, potential_rating from properties order by random() limit 5;'
+sqlite3 -header -column -echo \
+    /tmp/property.db < ./server/sql/sample_properties.sql
 ```
