@@ -42,7 +42,7 @@ func (dal *DataAccessLayer) seedProperties() {
 	}
 	defer f.Close()
 
-	r := csv.NewReader(strings.NewReader(data))
+	r := csv.NewReader(f)
 
 	records, err := r.ReadAll()
 	if err != nil {
@@ -187,4 +187,10 @@ func getDescription() string {
 	k := rand.Intn(3) + 1
 	sample = sample[:k]
 	return strings.Join(sample[:], ", ")
+}
+
+func (dal *DataAccessLayer) getPropertyDetails(property *pb.Property) *pb.PropertyDetails {
+	var details *pb.PropertyDetails
+	dal.db.First(details, property.Id)
+	return details
 }

@@ -24,11 +24,13 @@ func (s *propertyPortalServer) FindProperties(ctx context.Context, filters *pb.F
 	return props, nil
 }
 
-func (s *propertyPortalServer) GetPropertyDetails(ctx context.Context, filters *pb.Property) (*pb.PropertyDetails, error) {
-	return &pb.PropertyDetails{}, nil
+func (s *propertyPortalServer) GetPropertyDetails(ctx context.Context, property *pb.Property) (*pb.PropertyDetails, error) {
+	prop := dal.getPropertyDetails(property)
+	log.Printf("GetPropertyDetails: %v", prop)
+	return prop, nil
 }
 
-func (s *propertyPortalServer) GetPropertyImages(rect *pb.Property, stream pb.PropertyPortal_GetPropertyImagesServer) error {
+func (s *propertyPortalServer) GetPropertyImages(property *pb.Property, stream pb.PropertyPortal_GetPropertyImagesServer) error {
 	if err := stream.Send(&pb.Image{}); err != nil {
 		return err
 	}
