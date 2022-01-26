@@ -20,13 +20,13 @@ type propertyPortalServer struct {
 
 func (s *propertyPortalServer) FindProperties(ctx context.Context, filters *pb.Filters) (*pb.Properties, error) {
 	props := dal.findProperties(filters)
-	log.Printf("FindProperties count: %d", len(props.Properties))
+	log.Printf("FindProperties: %+v", props)
 	return props, nil
 }
 
 func (s *propertyPortalServer) GetPropertyDetails(ctx context.Context, property *pb.Property) (*pb.PropertyDetails, error) {
 	prop := dal.getPropertyDetails(property)
-	log.Printf("GetPropertyDetails: %v", prop)
+	log.Printf("GetPropertyDetails: %+v", prop)
 	return prop, nil
 }
 

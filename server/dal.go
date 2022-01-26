@@ -190,7 +190,40 @@ func getDescription() string {
 }
 
 func (dal *DataAccessLayer) getPropertyDetails(property *pb.Property) *pb.PropertyDetails {
-	var details *pb.PropertyDetails
-	dal.db.First(details, property.Id)
-	return details
+	var dto *Property
+	dal.db.First(&dto, property.Id)
+	details := pb.PropertyDetails{
+		Property: &pb.Property{
+			Id:    uint64(dto.ID),
+			Title: dto.Title,
+		},
+		Description:  dto.Description,
+		Location:     dto.Location,
+		Price:        dto.Price,
+		Beds:         dto.Beds,
+		Bathrooms:    dto.Bathrooms,
+		PropertyType: pb.PropertyType(dto.PropertyType),
+		Features: &pb.Features{
+			Garden:  -1,
+			Parking: -1,
+			NewHome: -1,
+		},
+		EnergyEfficiencyRating: &pb.EnergyEfficiencyRating{
+			Current:   dto.CurrentRating,
+			Potential: dto.PotentialRating,
+		},
+	}
+
+	features := details.Features
+	if dto.Garden {
+		features.Garden = 1
+	}
+	if dto.Parking {
+		features.Parking = 1
+	}
+	if dto.NewHome {
+		features.NewHome = 1
+	}
+
+	return &details
 }

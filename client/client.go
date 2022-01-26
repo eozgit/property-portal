@@ -3,26 +3,17 @@ package main
 import (
 	"context"
 	"log"
-	"time"
 
 	pb "github.com/eozgit/property-portal/propertyportal"
-	"google.golang.org/grpc"
 )
 
-func main() {
-	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithInsecure())
+type ClientContext struct {
+	ctx    context.Context
+	client pb.PropertyPortalClient
+}
 
-	conn, err := grpc.Dial("localhost:10000", opts...)
-	if err != nil {
-		log.Fatalf("fail to dial: %v", err)
-	}
-	defer conn.Close()
-	client := pb.NewPropertyPortalClient(conn)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	properties, err := client.FindProperties(ctx, &pb.Filters{
+func (cc *ClientContext) findProperties() {
+	properties, err := cc.client.FindProperties(cc.ctx, &pb.Filters{
 		Location:     "Birmingham",
 		MinPrice:     200000,
 		MaxPrice:     350000,
@@ -34,7 +25,17 @@ func main() {
 		},
 	})
 	if err != nil {
-		log.Fatalf("%v.FindProperties(_) = _, %v: ", client, err)
+		log.Fatalf("%v.FindProperties(_) = _, %v: ", cc.client, err)
 	}
-	log.Println(properties)
+	log.Printf("Search results: %+v\n", properties)
+}
+
+func (cc *ClientContext) getPropertyDetails() {
+	propertyDetails, err := cc.client.GetPropertyDetails(cc.ctx, &pb.Property{
+		Id: 1,
+	})
+	if err != nil {
+		log.Fatalf("%v.GetPropertyDetails(_) = _, %v: ", cc.client, err)
+	}
+	log.Printf("Property details: %+v\n", propertyDetails)
 }
