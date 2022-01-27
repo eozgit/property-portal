@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.14.3 // indirect
 	github.com/golang/protobuf v1.5.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.4 // indirect

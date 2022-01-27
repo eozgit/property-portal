@@ -14,7 +14,7 @@ type ClientContext struct {
 
 func (cc *ClientContext) findProperties() {
 	properties, err := cc.client.FindProperties(cc.ctx, &pb.Filters{
-		Location:     "Birmingham",
+		Location:     "Cambridge",
 		MinPrice:     200000,
 		MaxPrice:     350000,
 		MinBeds:      1,

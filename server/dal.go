@@ -61,6 +61,9 @@ func (dal *DataAccessLayer) seedProperties() {
 		region := record[5]
 
 		propertyCount := population/100000 + 1
+		if county == "Cambridgeshire" { // Add extra data for demo
+			propertyCount *= 100
+		}
 
 		for i := 0; i < int(propertyCount); i++ {
 			beds := rand.Intn(6)
@@ -181,11 +184,15 @@ var features = []string{
 	"Gas central heating",
 }
 
+func getSample(population *[]string, min int, max int) []string {
+	sample := append([]string(nil), *population...)
+	rand.Shuffle(len(*population), func(i, j int) { sample[i], sample[j] = sample[j], sample[i] })
+	k := rand.Intn(max-min) + min
+	return sample[:k]
+}
+
 func getDescription() string {
-	sample := append([]string(nil), features...)
-	rand.Shuffle(len(features), func(i, j int) { sample[i], sample[j] = sample[j], sample[i] })
-	k := rand.Intn(3) + 1
-	sample = sample[:k]
+	sample := getSample(&features, 1, 3)
 	return strings.Join(sample[:], ", ")
 }
 

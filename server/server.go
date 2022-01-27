@@ -8,6 +8,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/brianvoe/gofakeit/v6"
 	pb "github.com/eozgit/property-portal/propertyportal"
 	"google.golang.org/grpc"
 )
@@ -30,9 +31,29 @@ func (s *propertyPortalServer) GetPropertyDetails(ctx context.Context, property 
 	return prop, nil
 }
 
+var rooms = []string{
+	"living",
+	"dining",
+	"kitchen",
+	"bedroom",
+	"bathroom",
+	"hall",
+	"conservatory",
+	"garage",
+	"balcony",
+}
+
 func (s *propertyPortalServer) GetPropertyImages(property *pb.Property, stream pb.PropertyPortal_GetPropertyImagesServer) error {
-	if err := stream.Send(&pb.Image{}); err != nil {
-		return err
+	sample := getSample(&rooms, 3, 5)
+	url := gofakeit.URL()
+	for _, room := range sample {
+		if err := stream.Send(&pb.Image{
+			Image: &pb.Image_Url{
+				Url: fmt.Sprintf("%s/%s.png", url, room),
+			},
+		}); err != nil {
+			return err
+		}
 	}
 	return nil
 }
