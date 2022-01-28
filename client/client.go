@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
 
 	pb "github.com/eozgit/property-portal/propertyportal"
@@ -38,4 +39,36 @@ func (cc *ClientContext) getPropertyDetails() {
 		log.Fatalf("%v.GetPropertyDetails(_) = _, %v: ", cc.client, err)
 	}
 	log.Printf("Property details: %+v\n", propertyDetails)
+}
+
+func (cc *ClientContext) getPropertyImages() {
+	stream, err := cc.client.GetPropertyImages(cc.ctx)
+	if err != nil {
+		log.Fatalf("%v.GetPropertyImages(_) = _, %v", cc.client, err)
+	}
+	waitc := make(chan struct{})
+	go func() {
+		for {
+			image, err := stream.Recv()
+			if err == io.EOF {
+				// read done.
+				close(waitc)
+				return
+			}
+			if err != nil {
+				log.Fatalf("Failed to receive a note : %v", err)
+			}
+			log.Printf("Image data: %v", image)
+		}
+	}()
+	property := pb.Property{
+		Id: 1,
+	}
+	for i := 0; i < 3; i++ {
+		if err := stream.Send(&property); err != nil {
+			log.Fatalf("Failed to send property info: %v", err)
+		}
+	}
+	stream.CloseSend()
+	<-waitc
 }

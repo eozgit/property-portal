@@ -28,4 +28,6 @@ func main() {
 	cc.findProperties()
 
 	cc.getPropertyDetails()
+
+	cc.getPropertyImages()
 }

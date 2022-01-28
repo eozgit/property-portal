@@ -47,7 +47,9 @@ func (s *propertyPortalServer) GetPropertyImages(stream pb.PropertyPortal_GetPro
 		iteration := uint(0)
 		ok := false
 		if iteration, ok = propertyImageIteration[propId]; !ok {
-			propertyImageIteration[propId] = 0
+			propertyImageIteration[propId] = 1
+		} else {
+			propertyImageIteration[propId] += 1
 		}
 
 		images := dal.getPropertyImages(propId)
