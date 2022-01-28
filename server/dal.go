@@ -1,13 +1,9 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
-	"log"
 	"math/rand"
 	"os"
-	"path/filepath"
-	"strconv"
 	"strings"
 
 	pb "github.com/eozgit/property-portal/propertyportal"
@@ -29,75 +25,18 @@ func (dal *DataAccessLayer) initDb() {
 
 	dal.db = db
 
-	dal.db.AutoMigrate(&Property{})
+	dal.db.AutoMigrate(&Property{}, &PropertyImage{})
 
 	dal.seedProperties()
+	dal.seedPropertyImages()
 }
 
 func (dal *DataAccessLayer) seedProperties() {
-	absPath, _ := filepath.Abs("./server/locations.csv")
-	f, err := os.Open(absPath)
-	if err != nil {
-		log.Fatal("Unable to read locations file", err)
-	}
-	defer f.Close()
+	seedProperties(dal)
+}
 
-	r := csv.NewReader(f)
-
-	records, err := r.ReadAll()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var properties = []Property{}
-
-	for _, record := range records {
-		population, errPopulation := strconv.ParseUint(strings.ReplaceAll(record[2], ",", ""), 10, 64)
-		if errPopulation != nil {
-			log.Fatalf("failed to convert population '%s'", record[2])
-		}
-		district := record[1]
-		county := record[4]
-		region := record[5]
-
-		propertyCount := population/100000 + 1
-		if county == "Cambridgeshire" { // Add extra data for demo
-			propertyCount *= 100
-		}
-
-		for i := 0; i < int(propertyCount); i++ {
-			beds := rand.Intn(6)
-			var bathrooms uint32
-			if beds == 0 {
-				bathrooms = 1
-			} else {
-				bathrooms = uint32(rand.Intn(beds))
-				if bathrooms == 0 {
-					bathrooms = 1
-				}
-			}
-			price := (rand.Intn(20)*5 + (beds+1)*100) * 1000
-			propertyType := rand.Intn(4) + 1
-			currentRating := rand.Intn(100)
-			property := Property{
-				Title:           getTitle(beds, propertyType),
-				Description:     getDescription(),
-				Location:        fmt.Sprintf("%s, %s, %s", district, county, region),
-				Price:           float64(price),
-				Beds:            uint32(beds),
-				Bathrooms:       uint32(bathrooms),
-				PropertyType:    uint32(propertyType),
-				Garden:          rand.Intn(2) == 0,
-				Parking:         rand.Intn(2) == 0,
-				NewHome:         rand.Intn(2) == 0,
-				CurrentRating:   uint32(currentRating),
-				PotentialRating: uint32(rand.Intn(100-currentRating) + currentRating),
-			}
-			properties = append(properties, property)
-		}
-	}
-
-	dal.db.CreateInBatches(&properties, 100)
+func (dal *DataAccessLayer) seedPropertyImages() {
+	seedPropertyImages(dal)
 }
 
 var propertyTypeMap = map[uint32]string{
@@ -233,4 +172,21 @@ func (dal *DataAccessLayer) getPropertyDetails(property *pb.Property) *pb.Proper
 	}
 
 	return &details
+}
+
+func (dal *DataAccessLayer) getPropertyImages(propertyId uint) []pb.Image {
+	var dto []PropertyImage
+	dal.db.Where("property_id = ?", propertyId).Find(&dto)
+
+	images := []pb.Image{}
+	for _, record := range dto {
+		image := pb.Image{
+			Image: &pb.Image_Url{
+				Url: record.Url,
+			},
+		}
+		images = append(images, image)
+	}
+
+	return images
 }

@@ -56,3 +56,9 @@ sqlite3 -header -column -echo \
 sqlite3 -header -column -echo \
     /tmp/property.db < ./server/sql/sample_properties.sql
 ```
+
+#### Sample property-images
+```sh
+sqlite3 -header -column -echo \
+    /tmp/property.db < ./server/sql/sample_property_images.sql
+```

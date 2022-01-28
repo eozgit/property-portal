@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"net"
 	"time"
 
-	"github.com/brianvoe/gofakeit/v6"
 	pb "github.com/eozgit/property-portal/propertyportal"
 	"google.golang.org/grpc"
 )
@@ -31,31 +31,35 @@ func (s *propertyPortalServer) GetPropertyDetails(ctx context.Context, property 
 	return prop, nil
 }
 
-var rooms = []string{
-	"living",
-	"dining",
-	"kitchen",
-	"bedroom",
-	"bathroom",
-	"hall",
-	"conservatory",
-	"garage",
-	"balcony",
-}
+var propertyImageIteration = map[uint]uint{}
 
-func (s *propertyPortalServer) GetPropertyImages(property *pb.Property, stream pb.PropertyPortal_GetPropertyImagesServer) error {
-	sample := getSample(&rooms, 3, 5)
-	url := gofakeit.URL()
-	for _, room := range sample {
-		if err := stream.Send(&pb.Image{
-			Image: &pb.Image_Url{
-				Url: fmt.Sprintf("%s/%s.png", url, room),
-			},
-		}); err != nil {
+func (s *propertyPortalServer) GetPropertyImages(stream pb.PropertyPortal_GetPropertyImagesServer) error {
+	for {
+		prop, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
+		propId := uint(prop.Id)
+		iteration := uint(0)
+		ok := false
+		if iteration, ok = propertyImageIteration[propId]; !ok {
+			propertyImageIteration[propId] = 0
+		}
+
+		images := dal.getPropertyImages(propId)
+
+		index := iteration % uint(len(images))
+
+		image := &images[index]
+
+		if err := stream.Send(image); err != nil {
 			return err
 		}
 	}
-	return nil
 }
 
 func main() {

@@ -20,7 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type PropertyPortalClient interface {
 	FindProperties(ctx context.Context, in *Filters, opts ...grpc.CallOption) (*Properties, error)
 	GetPropertyDetails(ctx context.Context, in *Property, opts ...grpc.CallOption) (*PropertyDetails, error)
-	GetPropertyImages(ctx context.Context, in *Property, opts ...grpc.CallOption) (PropertyPortal_GetPropertyImagesClient, error)
+	GetPropertyImages(ctx context.Context, opts ...grpc.CallOption) (PropertyPortal_GetPropertyImagesClient, error)
 }
 
 type propertyPortalClient struct {
@@ -49,28 +49,27 @@ func (c *propertyPortalClient) GetPropertyDetails(ctx context.Context, in *Prope
 	return out, nil
 }
 
-func (c *propertyPortalClient) GetPropertyImages(ctx context.Context, in *Property, opts ...grpc.CallOption) (PropertyPortal_GetPropertyImagesClient, error) {
+func (c *propertyPortalClient) GetPropertyImages(ctx context.Context, opts ...grpc.CallOption) (PropertyPortal_GetPropertyImagesClient, error) {
 	stream, err := c.cc.NewStream(ctx, &PropertyPortal_ServiceDesc.Streams[0], "/propertyportal.PropertyPortal/GetPropertyImages", opts...)
 	if err != nil {
 		return nil, err
 	}
 	x := &propertyPortalGetPropertyImagesClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
 	return x, nil
 }
 
 type PropertyPortal_GetPropertyImagesClient interface {
+	Send(*Property) error
 	Recv() (*Image, error)
 	grpc.ClientStream
 }
 
 type propertyPortalGetPropertyImagesClient struct {
 	grpc.ClientStream
+}
+
+func (x *propertyPortalGetPropertyImagesClient) Send(m *Property) error {
+	return x.ClientStream.SendMsg(m)
 }
 
 func (x *propertyPortalGetPropertyImagesClient) Recv() (*Image, error) {
@@ -87,7 +86,7 @@ func (x *propertyPortalGetPropertyImagesClient) Recv() (*Image, error) {
 type PropertyPortalServer interface {
 	FindProperties(context.Context, *Filters) (*Properties, error)
 	GetPropertyDetails(context.Context, *Property) (*PropertyDetails, error)
-	GetPropertyImages(*Property, PropertyPortal_GetPropertyImagesServer) error
+	GetPropertyImages(PropertyPortal_GetPropertyImagesServer) error
 	mustEmbedUnimplementedPropertyPortalServer()
 }
 
@@ -101,7 +100,7 @@ func (UnimplementedPropertyPortalServer) FindProperties(context.Context, *Filter
 func (UnimplementedPropertyPortalServer) GetPropertyDetails(context.Context, *Property) (*PropertyDetails, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPropertyDetails not implemented")
 }
-func (UnimplementedPropertyPortalServer) GetPropertyImages(*Property, PropertyPortal_GetPropertyImagesServer) error {
+func (UnimplementedPropertyPortalServer) GetPropertyImages(PropertyPortal_GetPropertyImagesServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetPropertyImages not implemented")
 }
 func (UnimplementedPropertyPortalServer) mustEmbedUnimplementedPropertyPortalServer() {}
@@ -154,15 +153,12 @@ func _PropertyPortal_GetPropertyDetails_Handler(srv interface{}, ctx context.Con
 }
 
 func _PropertyPortal_GetPropertyImages_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(Property)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(PropertyPortalServer).GetPropertyImages(m, &propertyPortalGetPropertyImagesServer{stream})
+	return srv.(PropertyPortalServer).GetPropertyImages(&propertyPortalGetPropertyImagesServer{stream})
 }
 
 type PropertyPortal_GetPropertyImagesServer interface {
 	Send(*Image) error
+	Recv() (*Property, error)
 	grpc.ServerStream
 }
 
@@ -172,6 +168,14 @@ type propertyPortalGetPropertyImagesServer struct {
 
 func (x *propertyPortalGetPropertyImagesServer) Send(m *Image) error {
 	return x.ServerStream.SendMsg(m)
+}
+
+func (x *propertyPortalGetPropertyImagesServer) Recv() (*Property, error) {
+	m := new(Property)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // PropertyPortal_ServiceDesc is the grpc.ServiceDesc for PropertyPortal service.
@@ -195,6 +199,7 @@ var PropertyPortal_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "GetPropertyImages",
 			Handler:       _PropertyPortal_GetPropertyImages_Handler,
 			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "property_portal.proto",

@@ -17,3 +17,9 @@ type Property struct {
 	CurrentRating   uint32
 	PotentialRating uint32
 }
+
+type PropertyImage struct {
+	gorm.Model
+	PropertyId uint
+	Url        string
+}
