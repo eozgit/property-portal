@@ -80,6 +80,7 @@ func seedProperties(dal *DataAccessLayer) {
 }
 
 var rooms = []string{
+	"floorplan",
 	"living",
 	"dining",
 	"kitchen",

@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"time"
 
 	pb "github.com/eozgit/property-portal/propertyportal"
 )
@@ -14,7 +15,7 @@ type ClientContext struct {
 }
 
 func (cc *ClientContext) findProperties() {
-	properties, err := cc.client.FindProperties(cc.ctx, &pb.Filters{
+	filters := pb.Filters{
 		Location:     "Cambridge",
 		MinPrice:     200000,
 		MaxPrice:     350000,
@@ -24,21 +25,25 @@ func (cc *ClientContext) findProperties() {
 		MustHaves: &pb.Features{
 			Garden: 1,
 		},
-	})
+	}
+	log.Printf("Call FindProperties, filters: %+v\n\n", &filters)
+	properties, err := cc.client.FindProperties(cc.ctx, &filters)
 	if err != nil {
 		log.Fatalf("%v.FindProperties(_) = _, %v: ", cc.client, err)
 	}
-	log.Printf("Search results: %+v\n", properties)
+	log.Printf("Search results: %+v\n\n\n", properties)
 }
 
 func (cc *ClientContext) getPropertyDetails() {
-	propertyDetails, err := cc.client.GetPropertyDetails(cc.ctx, &pb.Property{
+	property := pb.Property{
 		Id: 1,
-	})
+	}
+	log.Printf("Call GetPropertyDetails, property: %+v\n\n", &property)
+	propertyDetails, err := cc.client.GetPropertyDetails(cc.ctx, &property)
 	if err != nil {
 		log.Fatalf("%v.GetPropertyDetails(_) = _, %v: ", cc.client, err)
 	}
-	log.Printf("Property details: %+v\n", propertyDetails)
+	log.Printf("Property details: %+v\n\n\n", propertyDetails)
 }
 
 func (cc *ClientContext) getPropertyImages() {
@@ -58,16 +63,18 @@ func (cc *ClientContext) getPropertyImages() {
 			if err != nil {
 				log.Fatalf("Failed to receive a note : %v", err)
 			}
-			log.Printf("Image data: %v", image)
+			log.Printf("Received image data: %v\n\n\n", image)
 		}
 	}()
 	property := pb.Property{
 		Id: 1,
 	}
 	for i := 0; i < 3; i++ {
+		log.Printf("Send GetPropertyImages, property: %v\n\n", &property)
 		if err := stream.Send(&property); err != nil {
 			log.Fatalf("Failed to send property info: %v", err)
 		}
+		time.Sleep(time.Second * 2)
 	}
 	stream.CloseSend()
 	<-waitc

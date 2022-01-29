@@ -20,14 +20,20 @@ func main() {
 	defer conn.Close()
 	client := pb.NewPropertyPortalClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*100)
 	defer cancel()
+
+	log.Printf("grpcClient started\n\n")
 
 	cc := ClientContext{ctx, client}
 
 	cc.findProperties()
 
+	time.Sleep(time.Second * 3)
+
 	cc.getPropertyDetails()
+
+	time.Sleep(time.Second * 3)
 
 	cc.getPropertyImages()
 }

@@ -20,14 +20,16 @@ type propertyPortalServer struct {
 }
 
 func (s *propertyPortalServer) FindProperties(ctx context.Context, filters *pb.Filters) (*pb.Properties, error) {
+	log.Printf("Received FindProperties, filters: %+v\n\n", filters)
 	props := dal.findProperties(filters)
-	log.Printf("FindProperties: %+v", props)
+	log.Printf("Sending properties: %+v\n\n\n", props)
 	return props, nil
 }
 
 func (s *propertyPortalServer) GetPropertyDetails(ctx context.Context, property *pb.Property) (*pb.PropertyDetails, error) {
+	log.Printf("Received GetPropertyDetails, property: %+v\n\n", property)
 	prop := dal.getPropertyDetails(property)
-	log.Printf("GetPropertyDetails: %+v", prop)
+	log.Printf("Sending property: %+v\n\n\n", prop)
 	return prop, nil
 }
 
@@ -42,6 +44,7 @@ func (s *propertyPortalServer) GetPropertyImages(stream pb.PropertyPortal_GetPro
 		if err != nil {
 			return err
 		}
+		log.Printf("Received GetPropertyImages, property: %+v\n\n", prop)
 
 		propId := uint(prop.Id)
 		iteration := uint(0)
@@ -58,6 +61,7 @@ func (s *propertyPortalServer) GetPropertyImages(stream pb.PropertyPortal_GetPro
 
 		image := &images[index]
 
+		log.Printf("Sending image: %+v\n\n\n", image)
 		if err := stream.Send(image); err != nil {
 			return err
 		}
@@ -75,6 +79,6 @@ func main() {
 	}
 	grpcServer := grpc.NewServer()
 	pb.RegisterPropertyPortalServer(grpcServer, &propertyPortalServer{})
-	log.Printf("grpcServer started")
+	log.Printf("grpcServer started\n\n")
 	grpcServer.Serve(lis)
 }
