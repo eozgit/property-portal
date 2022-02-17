@@ -1,5 +1,8 @@
 # property-portal
 
+#### Demo
+https://youtu.be/pw-mvUUZXb8
+
 ### Features
 
 - Search for properties
@@ -13,7 +16,7 @@ docker pull eozgit/property-portal
 
 #### Run container
 ```sh
-docker run --tty --interactive --rm \
+docker run --rm --tty --interactive \
     --publish 10000:10000 \
     --name property-portal \
     eozgit/property-portal
@@ -63,20 +66,17 @@ go run ./server/
 
 #### Build image
 ```sh
-docker build --tag eozgit/property-portal .
+docker build --tag eozgit/property-portal:latest --tag eozgit/property-portal:YYMMDD .
+```
+
+#### Push image
+```sh
+docker image push eozgit/property-portal --all-tags
 ```
 
 ---
 
 
-#### Code
-
-https://github.com/eozgit/property-portal
-
 #### Docker repo
 
-TBA
-
-#### Demo
-
-https://youtu.be/pw-mvUUZXb8
+https://hub.docker.com/r/eozgit/property-portal
